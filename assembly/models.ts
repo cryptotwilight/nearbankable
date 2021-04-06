@@ -4,23 +4,26 @@ import {
   PersistentVector,
   PersistentMap
 } from 'near-sdk-as';
-import {AccountId, TransactionId, Balance} from './types';
+import {AccountId, TransactionId, Balance, BTransactionId} from './types';
 
-
+@nearBindgen
 export class Deposit {
+  BTxId: BTransactionId;
   amount: u128;
   reasoncode: u128;
   text: String;
 }
-
+@nearBindgen
 export class Withdrawal {
+  BTxId: BTransactionId;
   amount: u128;
   reasoncode: u128;
   text: String;
 }
 
+@nearBindgen
 export class Refund {
-  txId: TransactionId;
+  BTxId: BTransactionId;
   reasoncode: u128;
   text: String;
 }
@@ -38,12 +41,6 @@ export class NearBankableContract {
   withdrawals: PersistentMap<TransactionId, Withdrawal>;
   pendingRefunds: PersistentMap<TransactionId, Refund>;
   approvedRefunds: PersistentMap<TransactionId, Refund>;
-
-  depositFunds(depositParams: Deposit): void;
-  requestRefund(refundParams: Refund): void;
-
-  withdrawFunds(withdrawParams: Withdrawal): void; // Possibly new type?
-  approveRefund(refundParams: Refund): void;
 
   constructor(
     authorisedWithdrawAccounts: PersistentVector<AccountId>,
