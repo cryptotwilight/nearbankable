@@ -1,8 +1,8 @@
-import { ContractPromiseBatch, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging } from 'near-sdk-as'
-import { AccountId, Balance, Duration, TransactionId } from './types'
-import { Deposit, Withdrawal, NearBankableContract, Refund, DepositInput } from './models'
-import { assert } from 'node:console'
-import { domainToASCII } from 'node:url'
+import {ContractPromiseBatch, context, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
+import {AccountId, Balance, Duration, TransactionId} from './types'
+import {Deposit, Withdrawal, NearBankableContract, Refund, DepositInput} from './models'
+import {assert} from 'node:console'
+import {domainToASCII} from 'node:url'
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
@@ -11,14 +11,15 @@ let txIdCounter: u128 = u128.Zero
 export function init(
     authorisedWithdrawAccounts: PersistentVector<AccountId>
 ): NearBankableContract {
-  bankContract = new NearBankableContract (authorisedWithdrawAccounts)
-  return bankContract
+    bankContract = new NearBankableContract(authorisedWithdrawAccounts)
+    return bankContract
 }
 
-export function depositFunds(depositParams:Deposit) : u128 {
+export function depositFunds(depositParams: Deposit): u128 {
     assert(depositParams.amount > u128.Zero)
     let txId = txIdCounter
     txIdCounter = u128.add(txIdCounter, u128.One)
+    depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
     //Add balance
     bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount)
     //Store Deposit

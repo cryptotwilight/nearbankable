@@ -4,18 +4,18 @@ import {
   PersistentVector,
   PersistentMap
 } from 'near-sdk-as';
-import {AccountId, TransactionId, Balance, BTransactionId} from './types';
+import {AccountId, TransactionId, Balance, BlockchainTransactionId} from './types';
 
 @nearBindgen
 export class Deposit {
-  BTxId: BTransactionId;
+  blockchainTxId: BlockchainTransactionId;
   amount: u128;
   reasoncode: u128;
   text: String;
 }
 @nearBindgen
 export class Withdrawal {
-  BTxId: BTransactionId;
+  blockchainTxId: BlockchainTransactionId;
   amount: u128;
   reasoncode: u128;
   text: String;
@@ -23,7 +23,7 @@ export class Withdrawal {
 
 @nearBindgen
 export class Refund {
-  BTxId: BTransactionId;
+  blockchainTxId: BlockchainTransactionId;
   reasoncode: u128;
   text: String;
 }
@@ -46,6 +46,13 @@ export class NearBankableContract {
     authorisedWithdrawAccounts: PersistentVector<AccountId>,
   ) {
     authorisedWithdrawAccounts = this.authorisedWithdrawAccounts;
+
+    // We need to initialise these with a unique arg in brackets as per
+    // https://docs.near.org/docs/develop/contracts/as/intro#collections
+    this.deposits = new PersistentMap<TransactionId, Deposit>("deposits_unique_string")
+    this.withdrawals = new PersistentMap<TransactionId, Withdrawal>("withdrawals_unique_string")
+    this.pendingRefunds = new PersistentMap<TransactionId, Refund>("pendingRefunds_unique_string")
+    this.approvedRefunds = new PersistentMap<TransactionId, Refund>("approvedRefunds_unique_string")
   };
 
   getBalance(): Balance {
