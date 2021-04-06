@@ -1,0 +1,22 @@
+{
+  "name": "nearbankable",
+  "version": "1.0.0",
+  "description": "NCD Bankable Project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cryptotwilight/nearbankable.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cryptotwilight/nearbankable/issues"
+  },
+  "homepage": "https://github.com/cryptotwilight/nearbankable#readme",
+  "devDependencies": {
+    "near-sdk-as": "^3.1.0"
+  }
+}
