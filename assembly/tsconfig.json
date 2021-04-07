@@ -1,0 +1,3 @@
+{
+  "extends": "assemblyscript/src/assembly.json"
+}
