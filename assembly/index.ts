@@ -31,6 +31,10 @@ export function requestRefund(refundParams: Refund): void {
     //Todo logic
 }
 
+function _transferFunds(to: AccountId, amount: Balance): void {
+    const beneficiary = ContractPromiseBatch.create(to).transfer(amount);
+}
+
 export function withdrawFunds(withdrawParams: Withdrawal): u128 {
     assert(withdrawParams.amount > u128.Zero)
     assert(u128.sub(bankContract.storedTokens, withdrawParams.amount) > u128.Zero) //If we don't allow overdraw
@@ -40,7 +44,10 @@ export function withdrawFunds(withdrawParams: Withdrawal): u128 {
     bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount)
     //Store Deposit
     bankContract.withdrawals.set(bankTxId, withdrawParams)
-    // TODO: Create a transaction to send funds from this contract
+    // Transfer funds to withdrawee
+    // TODO: Add assert checks to see context.sender is authorised
+    _transferFunds(context.sender, withdrawParams.amount);
+
     return bankTxId
 }
 export function approveRefund(refundParams: Refund): void {
