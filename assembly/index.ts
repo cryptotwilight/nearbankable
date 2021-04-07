@@ -7,7 +7,7 @@ import {domainToASCII} from 'node:url'
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
 let bankContract: NearBankableContract
-let txIdCounter: u128 = u128.Zero
+let bankTxIdCounter: u128 = u128.Zero
 export function init(
     authorisedWithdrawAccounts: PersistentVector<AccountId>
 ): NearBankableContract {
@@ -17,14 +17,14 @@ export function init(
 
 export function depositFunds(depositParams: Deposit): u128 {
     assert(depositParams.amount > u128.Zero)
-    let txId = txIdCounter
-    txIdCounter = u128.add(txIdCounter, u128.One)
+    let bankTxId = bankTxIdCounter
+    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
     depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
     //Add balance
     bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount)
     //Store Deposit
-    bankContract.deposits.set(txId, depositParams)
-    return txId
+    bankContract.deposits.set(bankTxId, depositParams)
+    return bankTxId
 }
 
 export function requestRefund(refundParams: Refund): void {
@@ -34,13 +34,14 @@ export function requestRefund(refundParams: Refund): void {
 export function withdrawFunds(withdrawParams: Withdrawal): u128 {
     assert(withdrawParams.amount > u128.Zero)
     assert(u128.sub(bankContract.storedTokens, withdrawParams.amount) > u128.Zero) //If we don't allow overdraw
-    let txId = txIdCounter
-    txIdCounter = u128.add(txIdCounter, u128.One)
+    let bankTxId = bankTxIdCounter
+    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
     //Remove balance
     bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount)
     //Store Deposit
-    bankContract.withdrawals.set(txId, withdrawParams)
-    return txId
+    bankContract.withdrawals.set(bankTxId, withdrawParams)
+    // TODO: Create a transaction to send funds from this contract
+    return bankTxId
 }
 export function approveRefund(refundParams: Refund): void {
     //Todo logic
