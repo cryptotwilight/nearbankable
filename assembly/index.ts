@@ -1,7 +1,7 @@
 import {ContractPromiseBatch, context, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
 import {AccountId, Balance, Duration, TransactionId} from './types'
 import {Deposit, Withdrawal, NearBankableContract, Refund} from './models'
-//import { * } from 'assert'
+//import { assert } from 'assert' FIXME: Fix this import!
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
@@ -52,6 +52,15 @@ export function withdrawFunds(withdrawParams: Withdrawal): u128 {
 export function approveRefund(refundParams: Refund): void {
     //Todo logic
 }
+
+/*
+TODO: we probably want something like this down the line
+export function addAuthorisedWithdrawer(who: AccountId): void {
+    assert(context.sender == this.owner);
+
+    this.authorisedWithdrawAccounts.push(who);
+}
+*/
 
 /******************/
 /* View Functions */

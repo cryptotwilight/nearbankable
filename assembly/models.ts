@@ -4,12 +4,12 @@ import {
   PersistentVector,
   PersistentMap
 } from 'near-sdk-as';
-import {AccountId, TransactionId, Balance, BlockchainTransactionId} from './types';
+import {AccountId, TransactionId, Amount, Balance, BlockchainTransactionId} from './types';
 
 @nearBindgen
 export class Deposit {
   blockchainTxId: BlockchainTransactionId;
-  amount: u128;
+  amount: Amount;
   reasoncode: u128;
   text: String;
 }
