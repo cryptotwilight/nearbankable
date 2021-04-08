@@ -1,12 +1,12 @@
 import {ContractPromiseBatch, context, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
 import {AccountId, Balance, Duration, TransactionId} from './types'
 import {Deposit, Withdrawal, NearBankableContract, Refund} from './models'
-//import { assert } from 'assert' FIXME: Fix this import!
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
 let bankContract: NearBankableContract
 let bankTxIdCounter: u128 = u128.Zero
+
 export function init(
     authorisedWithdrawAccounts: PersistentVector<AccountId>,
     deposits: PersistentMap<TransactionId, Deposit>,
