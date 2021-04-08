@@ -1,95 +1,98 @@
-import {ContractPromiseBatch, context, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
-import {AccountId, Balance, Duration, TransactionId} from './types'
-import {Deposit, Withdrawal, NearBankableContract, Refund} from './models'
+import {ContractPromiseBatch, context, Context, u128, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
+import {AccountId, Balance, TransactionId, Deposit, Withdrawal, Refund} from './types'
+// TODO: Add logging? what does logging do?
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
-let bankContract: NearBankableContract
-let bankTxIdCounter: u128 = u128.Zero
 
-export function init(
-    authorisedWithdrawAccounts: PersistentVector<AccountId>,
-    deposits: PersistentMap<TransactionId, Deposit>,
-    withdrawals: PersistentMap<TransactionId, Withdrawal>,
-    pendingRefunds: PersistentMap<TransactionId, Refund>,
-    approvedRefunds: PersistentMap<TransactionId, Refund>
-): NearBankableContract {
-    bankContract = new NearBankableContract(authorisedWithdrawAccounts, deposits, withdrawals, pendingRefunds, approvedRefunds)
-    return bankContract
-}
+@nearBindgen
+export class NearBankableContract {
+    storedTokens: Balance;
+    owner: AccountId;
+    bankTxIdCounter: u128 = u128.Zero;
 
-export function depositFunds(depositParams: Deposit): u128 {
-    assert(depositParams.amount > u128.Zero)
-    let bankTxId = bankTxIdCounter
-    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
-    depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
-    //Add balance
-    bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount)
-    //Store Deposit
-    bankContract.deposits.set(bankTxId, depositParams)
-    return bankTxId
-}
+    constructor(
+        owner: AccountId,
+    ) {
+        this.storedTokens = u128.Zero;
+        this.owner = owner;
+    };
 
-export function requestRefund(refundParams: Refund): void {
-    //Todo logic
-}
+    /******************/
+    /* View Functions */
+    /******************/
 
-
-export function withdrawFunds(withdrawParams: Withdrawal): u128 {
-    assert(withdrawParams.amount > u128.Zero)
-    assert(u128.sub(bankContract.storedTokens, withdrawParams.amount) > u128.Zero) //If we don't allow overdraw
-    let bankTxId = bankTxIdCounter
-    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
-    //Remove balance
-    bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount)
-    //Store Deposit
-    bankContract.withdrawals.set(bankTxId, withdrawParams)
-    // Check withdrawer is authorised
-    let authorised = false;
-    for (let i = 0; i < bankContract.authorisedWithdrawAccounts.length; i++) {
-        if (bankContract.authorisedWithdrawAccounts[i] == context.sender) {
-            authorised = true;
-        }
+    getBalance(): Balance {
+        return this.storedTokens;
     }
-    assert(authorised == true);
-    // Transfer funds to withdrawee
-    ContractPromiseBatch.create(context.sender).transfer(withdrawParams.amount);
 
-    return bankTxId
+    getDeposits(): PersistentMap<TransactionId, Deposit> {
+        return deposits;
+    }
+
+    getWithdrawals(): PersistentMap<TransactionId, Withdrawal> {
+        return withdrawals;
+    }
+
+    getPendingRefunds(): PersistentMap<TransactionId, Refund> {
+        return pendingRefunds;
+    }
+
+    // Alias for getPendingRefunds
+    getRefundRequestList(): PersistentMap<TransactionId, Refund> {
+        return pendingRefunds;
+    }
+
+    getRefunds(): PersistentMap<TransactionId, Refund> {
+        return approvedRefunds;
+    }
+
+    depositFunds(depositParams: Deposit): u128 {
+        assert(depositParams.amount > u128.Zero);
+        let bankTxId = this.bankTxIdCounter;
+        this.bankTxIdCounter = u128.add(this.bankTxIdCounter, u128.One);
+        // FIXME: remove amount param from the deposit params?
+        //depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
+        // Add balance
+        this.storedTokens = u128.add(this.storedTokens, depositParams.amount);
+        // Store Deposit
+        deposits.set(bankTxId, depositParams);
+        return bankTxId;
+    }
+
+    withdrawFunds(withdrawParams: Withdrawal): u128 {
+        assert(this.owner == context.sender);
+        assert(withdrawParams.amount > u128.Zero);
+        assert(u128.sub(this.storedTokens, withdrawParams.amount) > u128.Zero); // If we don't allow overdraw
+        let bankTxId = this.bankTxIdCounter;
+        this.bankTxIdCounter = u128.add(this.bankTxIdCounter, u128.One);
+        // Remove balance
+        this.storedTokens = u128.sub(this.storedTokens, withdrawParams.amount);
+        // Store Deposit
+        withdrawals.set(bankTxId, withdrawParams);
+        // Check withdrawer is authorised
+        // Transfer funds to withdrawee
+        // FIXME: Check with thanks / lottery!
+        ContractPromiseBatch.create(context.sender).transfer(withdrawParams.amount);
+
+        return bankTxId
+    }
+
+    requestRefund(refundParams: Refund): void {
+        // TODO: logic
+    }
+
+    approveRefund(refundParams: Refund): void {
+        // TODO: logic
+    }
+
 }
-export function approveRefund(refundParams: Refund): void {
-    //Todo logic
-}
 
-/*
-TODO: we probably want something like this down the line
-export function addAuthorisedWithdrawer(who: AccountId): void {
-    assert(context.sender == this.owner);
-
-    this.authorisedWithdrawAccounts.push(who);
-}
-*/
-
-/******************/
-/* View Functions */
-/******************/
-
-export function getBalance(): Balance {
-    return bankContract.getBalance();
-}
-
-export function getDeposits(): PersistentMap<TransactionId, Deposit> {
-    return bankContract.getDeposits();
-}
-
-export function getWithdrawals(): PersistentMap<TransactionId, Withdrawal> {
-    return bankContract.getWithdrawals();
-}
-
-export function getRefundRequestList(): PersistentMap<TransactionId, Refund> {
-    return bankContract.getRefundRequestList();
-}
-
-export function getRefunds(): PersistentMap<TransactionId, Refund> {
-    return bankContract.getRefunds();
-}
+/***********/
+/* Storage */
+/***********/
+export const deposits = new PersistentMap<TransactionId, Deposit>("d");
+export const withdrawals = new PersistentMap<TransactionId, Withdrawal>("w");
+export const pendingRefunds = new PersistentMap<TransactionId, Refund>("p");
+export const approvedRefunds = new PersistentMap<TransactionId, Refund>("a");
+export const refundedTxs = new PersistentVector<TransactionId>("r");
