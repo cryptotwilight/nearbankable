@@ -6,6 +6,8 @@ import {
 } from 'near-sdk-as';
 import {AccountId, TransactionId, Amount, Balance, BlockchainTransactionId} from './types';
 
+// FIXME: I think there's some confusion going on between the TX IDs that has to be addressed
+
 @nearBindgen
 export class Deposit {
   blockchainTxId: BlockchainTransactionId;
@@ -32,7 +34,7 @@ export class Refund {
 export class NearBankableContract {
   storedTokens: Balance;
   refundedTxs: PersistentVector<TransactionId>;
-  // I'm not sure Map is the best data type to use here
+  // I'm notsure Map is the best data type to use here
   // however, I feel like simply keeping a list without keeping track of
   // the tx would be kind of pointless. Map with K = Tx allows
   // quick lookup for purposeof refunding for example

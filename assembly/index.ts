@@ -22,7 +22,7 @@ export function depositFunds(depositParams: Deposit): u128 {
     assert(depositParams.amount > u128.Zero);
     let bankTxId = bankTxIdCounter;
     bankTxIdCounter = u128.add(bankTxIdCounter, u128.One);
-    depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
+    //depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
     // Add balance
     bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount);
     // Store Deposit
