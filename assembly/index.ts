@@ -8,67 +8,52 @@ let bankContract: NearBankableContract
 let bankTxIdCounter: u128 = u128.Zero
 
 export function init(
-    authorisedWithdrawAccounts: PersistentVector<AccountId>,
+    owner: AccountId,
     deposits: PersistentMap<TransactionId, Deposit>,
     withdrawals: PersistentMap<TransactionId, Withdrawal>,
     pendingRefunds: PersistentMap<TransactionId, Refund>,
     approvedRefunds: PersistentMap<TransactionId, Refund>
 ): NearBankableContract {
-    bankContract = new NearBankableContract(authorisedWithdrawAccounts, deposits, withdrawals, pendingRefunds, approvedRefunds)
-    return bankContract
+    bankContract = new NearBankableContract(owner, deposits, withdrawals, pendingRefunds, approvedRefunds);
+    return bankContract;
 }
 
 export function depositFunds(depositParams: Deposit): u128 {
-    assert(depositParams.amount > u128.Zero)
-    let bankTxId = bankTxIdCounter
-    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
+    assert(depositParams.amount > u128.Zero);
+    let bankTxId = bankTxIdCounter;
+    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One);
     depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
-    //Add balance
-    bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount)
-    //Store Deposit
-    bankContract.deposits.set(bankTxId, depositParams)
-    return bankTxId
+    // Add balance
+    bankContract.storedTokens = u128.add(bankContract.storedTokens, depositParams.amount);
+    // Store Deposit
+    bankContract.deposits.set(bankTxId, depositParams);
+    return bankTxId;
 }
 
 export function requestRefund(refundParams: Refund): void {
-    //Todo logic
+    // TODO: logic
 }
 
 
 export function withdrawFunds(withdrawParams: Withdrawal): u128 {
-    assert(withdrawParams.amount > u128.Zero)
-    assert(u128.sub(bankContract.storedTokens, withdrawParams.amount) > u128.Zero) //If we don't allow overdraw
-    let bankTxId = bankTxIdCounter
-    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One)
-    //Remove balance
-    bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount)
-    //Store Deposit
-    bankContract.withdrawals.set(bankTxId, withdrawParams)
+    assert(bankContract.owner == context.sender);
+    assert(withdrawParams.amount > u128.Zero);
+    assert(u128.sub(bankContract.storedTokens, withdrawParams.amount) > u128.Zero); // If we don't allow overdraw
+    let bankTxId = bankTxIdCounter;
+    bankTxIdCounter = u128.add(bankTxIdCounter, u128.One);
+    // Remove balance
+    bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount);
+    // Store Deposit
+    bankContract.withdrawals.set(bankTxId, withdrawParams);
     // Check withdrawer is authorised
-    let authorised = false;
-    for (let i = 0; i < bankContract.authorisedWithdrawAccounts.length; i++) {
-        if (bankContract.authorisedWithdrawAccounts[i] == context.sender) {
-            authorised = true;
-        }
-    }
-    assert(authorised == true);
     // Transfer funds to withdrawee
     ContractPromiseBatch.create(context.sender).transfer(withdrawParams.amount);
 
     return bankTxId
 }
 export function approveRefund(refundParams: Refund): void {
-    //Todo logic
+    // TODO: logic
 }
-
-/*
-TODO: we probably want something like this down the line
-export function addAuthorisedWithdrawer(who: AccountId): void {
-    assert(context.sender == this.owner);
-
-    this.authorisedWithdrawAccounts.push(who);
-}
-*/
 
 /******************/
 /* View Functions */

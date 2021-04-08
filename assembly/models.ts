@@ -36,20 +36,21 @@ export class NearBankableContract {
   // however, I feel like simply keeping a list without keeping track of
   // the tx would be kind of pointless. Map with K = Tx allows
   // quick lookup for purposeof refunding for example
-  authorisedWithdrawAccounts: PersistentVector<AccountId>;
+  owner: AccountId;
   deposits: PersistentMap<TransactionId, Deposit>;
   withdrawals: PersistentMap<TransactionId, Withdrawal>;
   pendingRefunds: PersistentMap<TransactionId, Refund>;
   approvedRefunds: PersistentMap<TransactionId, Refund>;
 
   constructor(
-    authorisedWithdrawAccounts: PersistentVector<AccountId>,
+    owner: AccountId,
     deposits: PersistentMap<TransactionId, Deposit>,
     withdrawals: PersistentMap<TransactionId, Withdrawal>,
     pendingRefunds: PersistentMap<TransactionId, Refund>,
     approvedRefunds: PersistentMap<TransactionId, Refund>
   ) {
-    authorisedWithdrawAccounts = this.authorisedWithdrawAccounts;
+    this.storedTokens = u128.Zero;
+    owner = this.owner;
     deposits = this.deposits;
     withdrawals = this.withdrawals;
     pendingRefunds = this.pendingRefunds;
