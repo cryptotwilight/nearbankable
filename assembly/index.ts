@@ -1,16 +1,20 @@
 import {ContractPromiseBatch, context, PersistentSet, Context, base58, u128, env, PersistentVector, PersistentMap, logging} from 'near-sdk-as'
 import {AccountId, Balance, Duration, TransactionId} from './types'
 import {Deposit, Withdrawal, NearBankableContract, Refund} from './models'
-//import { assert } from 'assert' FIXME: Fix this import!
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
 let bankContract: NearBankableContract
 let bankTxIdCounter: u128 = u128.Zero
+
 export function init(
-    authorisedWithdrawAccounts: PersistentVector<AccountId>
+    authorisedWithdrawAccounts: PersistentVector<AccountId>,
+    deposits: PersistentMap<TransactionId, Deposit>,
+    withdrawals: PersistentMap<TransactionId, Withdrawal>,
+    pendingRefunds: PersistentMap<TransactionId, Refund>,
+    approvedRefunds: PersistentMap<TransactionId, Refund>
 ): NearBankableContract {
-    bankContract = new NearBankableContract(authorisedWithdrawAccounts)
+    bankContract = new NearBankableContract(authorisedWithdrawAccounts, deposits, withdrawals, pendingRefunds, approvedRefunds)
     return bankContract
 }
 
@@ -30,9 +34,6 @@ export function requestRefund(refundParams: Refund): void {
     //Todo logic
 }
 
-function _transferFunds(to: AccountId, amount: Balance): void {
-    const beneficiary = ContractPromiseBatch.create(to).transfer(amount);
-}
 
 export function withdrawFunds(withdrawParams: Withdrawal): u128 {
     assert(withdrawParams.amount > u128.Zero)
@@ -43,9 +44,16 @@ export function withdrawFunds(withdrawParams: Withdrawal): u128 {
     bankContract.storedTokens = u128.sub(bankContract.storedTokens, withdrawParams.amount)
     //Store Deposit
     bankContract.withdrawals.set(bankTxId, withdrawParams)
+    // Check withdrawer is authorised
+    let authorised = false;
+    for (let i = 0; i < bankContract.authorisedWithdrawAccounts.length; i++) {
+        if (bankContract.authorisedWithdrawAccounts[i] == context.sender) {
+            authorised = true;
+        }
+    }
+    assert(authorised == true);
     // Transfer funds to withdrawee
-    // TODO: Add assert checks to see context.sender is authorised
-    _transferFunds(context.sender, withdrawParams.amount);
+    ContractPromiseBatch.create(context.sender).transfer(withdrawParams.amount);
 
     return bankTxId
 }

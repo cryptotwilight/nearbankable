@@ -44,15 +44,16 @@ export class NearBankableContract {
 
   constructor(
     authorisedWithdrawAccounts: PersistentVector<AccountId>,
+    deposits: PersistentMap<TransactionId, Deposit>,
+    withdrawals: PersistentMap<TransactionId, Withdrawal>,
+    pendingRefunds: PersistentMap<TransactionId, Refund>,
+    approvedRefunds: PersistentMap<TransactionId, Refund>
   ) {
     authorisedWithdrawAccounts = this.authorisedWithdrawAccounts;
-
-    // We need to initialise these with a unique arg in brackets as per
-    // https://docs.near.org/docs/develop/contracts/as/intro#collections
-    this.deposits = new PersistentMap<TransactionId, Deposit>("deposits_unique_string")
-    this.withdrawals = new PersistentMap<TransactionId, Withdrawal>("withdrawals_unique_string")
-    this.pendingRefunds = new PersistentMap<TransactionId, Refund>("pendingRefunds_unique_string")
-    this.approvedRefunds = new PersistentMap<TransactionId, Refund>("approvedRefunds_unique_string")
+    deposits = this.deposits;
+    withdrawals = this.withdrawals;
+    pendingRefunds = this.pendingRefunds;
+    approvedRefunds = this.approvedRefunds;
   };
 
   getBalance(): Balance {
