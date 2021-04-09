@@ -1,22 +1,39 @@
 {
-  "name": "nearbankable",
-  "version": "1.0.0",
-  "description": "NCD Bankable Project",
-  "main": "index.js",
-  "scripts": {
-    "test": "asp"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cryptotwilight/nearbankable.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cryptotwilight/nearbankable/issues"
-  },
-  "homepage": "https://github.com/cryptotwilight/nearbankable#readme",
-  "devDependencies": {
-    "near-sdk-as": "^3.1.0"
-  }
+    "name": "nearbankable",
+    "description": "nearbankable project a decentralized bank on the blockchain",
+    "version": "0.0.1",
+    "scripts": {
+        "build": "node asconfig.js",
+        "deploy:contract": "near deploy",
+        "deploy": "yarn build && yarn deploy:contract && yarn deploy:pages",
+        "deploy:dev": "yarn build && near dev-deploy",
+        "prestart": "yarn build && yarn deploy:contract",
+        "dev": "yarn deploy:dev && yarn watch",
+        "watch": "nodemon --watch assembly -e ts --exec \"env-cmd -f ./neardev/dev-account.env parcel src/index.html\"",
+        "start": "env-cmd -f ./neardev/dev-account.env parcel src/index.html",
+        "test": "asp && yarn jest",
+        "test:ci": "env NODE_ENV=ci yarn test",
+        "asp": "asp --verbose",
+        "jest": "yarn build && jest test"
+    },
+    "devDependencies": {
+        "env-cmd": "^10.1.0",
+        "jest": "^26.6.3",
+        "jest-environment-node": "~26.6.2",
+        "near-cli": "^1.6.0",
+        "near-sdk-as": "^0.4.2",
+        "nodemon": "~2.0.7",
+        "parcel-bundler": "~1.12.5"
+    },
+    "jest": {
+        "testEnvironment": "near-cli/test_environment",
+        "testPathIgnorePatterns": [
+            "<rootDir>/assembly/",
+            "<rootDir>/node_modules/"
+        ]
+    },
+    "dependencies": {
+        "near-api-js": "^0.39.0",
+        "regenerator-runtime": "^0.13.7"
+    }
 }

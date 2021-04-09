@@ -44,14 +44,18 @@ export class NearBankableContract {
     }
 
     getRefunds(): PersistentMap<TransactionId, Refund> {
-        return approvedRefunds;
+       return approvedRefunds;
     }
 
-    @mutateState()
+    getDeclinedRefunds(): PersistentMap<TransactionId, Refund> { 
+        return declinedRefunds; 
+    }
+
     depositFunds(depositParams: Deposit): u128 {
         assert(depositParams.amount > u128.Zero);
         let bankTxId = this.bankTxIdCounter;
         this.bankTxIdCounter = u128.add(this.bankTxIdCounter, u128.One);
+        depositParams.depositor = context.sender; 
         // FIXME: remove amount param from the deposit params?
         //depositParams.amount = context.attachedDeposit; // Amount can be deduced from the sent tokens, in fact we should be doing this!
         // Add balance
@@ -61,7 +65,6 @@ export class NearBankableContract {
         return bankTxId;
     }
 
-    @mutateState()
     withdrawFunds(withdrawParams: Withdrawal): u128 {
         assert(this.owner == context.sender);
         assert(withdrawParams.amount > u128.Zero);
@@ -80,14 +83,58 @@ export class NearBankableContract {
         return bankTxId
     }
 
-    @mutateState()
-    requestRefund(refundParams: Refund): void {
-        // TODO: logic
+    requestRefund(refundParams: Refund): String {
+        // make sure that there is a deposit
+        assert( deposits.contains(refundParams.bankTxId), 'no matching deposit found');
+        // make sure that the refund requestor is the holder of the deposit
+
+        // check to make sure that the 
+        let deposit : Deposit = deposits.getSome(refundParams.bankTxId);
+        assert ( context.sender == deposit.depositor, 'refund can only be requested by depositor');
+        // add the refund request to the queue 
+        pendingRefunds.set(refundParams.bankTxId, refundParams);   
+        // let the requestor know
+        return "refund request in pending queue";
+    }
+    
+
+    approvedRefund(bankTxId : u128) : String {
+        // make sure it's the contract owner making the call
+        assert(context.sender == this.owner, "only administrator can call this" );
+    
+        // pull out the refund
+        let refund = pendingRefunds.getSome(bankTxId);
+        // pull out the deposit
+        let deposit = deposits.getSome(bankTxId);
+        // transfer the deposit amount
+        ContractPromiseBatch.create(deposit.depositor).transfer(deposit.amount);        
+        
+        // add the refund to the approved refunds
+        approvedRefunds.set(bankTxId, refund);
+        // add the bank transaction to the refunded list
+        refundedTxs.push(bankTxId);
+        // remove the refund from the pending list 
+        pendingRefunds.delete(bankTxId);
+    
+        let msg = `refund approved: ${bankTxId}`;
+    
+        return msg;
     }
 
-    @mutateState()
-    approveRefund(refundParams: Refund): void {
-        // TODO: logic
+    declinedRefund(bankTxId : u128) : String {
+        // make sure it's the contract owner making the call
+        assert(context.sender == this.owner, "only administrator can call this" );
+    
+        // pull out the refund
+        let refund = pendingRefunds.getSome(bankTxId);
+        // add the refund to the approved refunds
+        declinedRefunds.set(bankTxId, refund);
+        // remove the refund from the pending list 
+        pendingRefunds.delete(bankTxId);
+    
+        let msg = "refund approved: ${bankTxId}";
+    
+        return msg;
     }
 
 }
@@ -99,4 +146,5 @@ export const deposits = new PersistentMap<TransactionId, Deposit>("d");
 export const withdrawals = new PersistentMap<TransactionId, Withdrawal>("w");
 export const pendingRefunds = new PersistentMap<TransactionId, Refund>("p");
 export const approvedRefunds = new PersistentMap<TransactionId, Refund>("a");
+export const declinedRefunds = new PersistentMap<TransactionId, Refund>("d");
 export const refundedTxs = new PersistentVector<TransactionId>("r");
