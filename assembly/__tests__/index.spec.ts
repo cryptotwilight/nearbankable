@@ -12,7 +12,7 @@ beforeEach(() => {
     contract = new NearBankableContract(owner);
 })
 
-describe("Basics, Deposits, Withdrawals", () => {
+describe("Basics", () => {
 
     it("should initialise correctly", () => {
         expect(contract).not.toBeNull();
@@ -25,4 +25,30 @@ describe("Basics, Deposits, Withdrawals", () => {
     it("balance should be initialised correctly", () => {
         expect(contract.getBalance()).toBe(u128.Zero);
     });
+});
+
+describe("Depositing, Withdrawing", () => {
+
+    it("Can't deposit less than 0 funds", () => {
+        expect(() => {
+            contract.depositFunds({
+                blockchainTxId: "test1",
+                amount: u128.from(0),
+                reasoncode: u128.One,
+                text: "A zero deposit, invalid"
+            })
+        }).toThrow();
+    });
+
+    it("Can deposit funds", () => {
+        expect(() => {
+            contract.depositFunds({
+                blockchainTxId: "test1",
+                amount: u128.from("1000000000000000000000000"),
+                reasoncode: u128.One,
+                text: "A zero deposit, invalid"
+            })
+        }).not.toThrow();
+    });
+
 });
