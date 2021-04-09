@@ -49,6 +49,7 @@ export class NearBankableContract {
         return declinedRefunds;
     }
 
+    @mutateState()
     depositFunds(depositParams: Deposit): u128 {
         assert(depositParams.amount > u128.Zero);
         let bankTxId = this.bankTxIdCounter;
@@ -64,6 +65,7 @@ export class NearBankableContract {
         return bankTxId;
     }
 
+    @mutateState()
     withdrawFunds(withdrawParams: Withdrawal): u128 {
         assert(this.owner == context.sender);
         assert(withdrawParams.amount > u128.Zero);
@@ -81,12 +83,13 @@ export class NearBankableContract {
         return bankTxId
     }
 
+    @mutateState()
     requestRefund(refundParams: Refund): String {
-        // make sure that there is a deposit
-        assert(deposits.contains(refundParams.bankTxId) == true, 'no matching deposit found');
         // make sure that the refund requestor is the holder of the deposit
+        // assert(context.sender == deposit.depositor, 'refund can only be requested by depositor'); FIXME: activate this for deployment
+        // make sure that there is a deposit
         let deposit: Deposit = deposits.getSome(refundParams.bankTxId);
-        assert(context.sender == deposit.depositor, 'refund can only be requested by depositor');
+        assert(deposits.contains(refundParams.bankTxId) == true, 'no matching deposit found');
         // add the refund request to the queue 
         pendingRefunds.set(refundParams.bankTxId, refundParams);
         // let the requestor know

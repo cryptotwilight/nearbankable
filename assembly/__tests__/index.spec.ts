@@ -1,9 +1,10 @@
 import {u128, VMContext} from 'near-sdk-as';
 import {NearBankableContract} from '../index';
+import {Refund} from '../types';
 
 let contract: NearBankableContract;
 let owner = "memadrifttest1.testnet";
-//const ONE_NEAR = u128.from("1000000000000000000000000");
+const ONE_NEAR = u128.from("1000000000000000000000000");
 //const XCC_GAS: Gas = 20_000_000_000_000;
 
 beforeEach(() => {
@@ -45,12 +46,56 @@ describe("Depositing, Withdrawing", () => {
         expect(() => {
             contract.depositFunds({
                 blockchainTxId: "test1",
-                amount: u128.from("1000000000000000000000000"),
+                amount: ONE_NEAR,
                 depositor: owner,
                 reasoncode: u128.One,
-                text: "A zero deposit, invalid"
+                text: "A proper deposit"
             })
         }).not.toThrow();
     });
 
+    it("Funds added to balance", () => {
+        contract.depositFunds({
+            blockchainTxId: "test1",
+            amount: ONE_NEAR,
+            depositor: owner,
+            reasoncode: u128.One,
+            text: "A proper deposit"
+        })
+        expect(contract.getBalance()).toBe(ONE_NEAR);
+    });
+
+    it("Deposits appended", () => {
+        contract.depositFunds({
+            blockchainTxId: "test1",
+            amount: ONE_NEAR,
+            depositor: owner,
+            reasoncode: u128.One,
+            text: "A proper deposit"
+        })
+        expect(contract.getDeposits().contains(u128.Zero)).toBeTruthy();
+    });
+
+    /*
+     This test can be activated by removing the assert for context.sender
+     and removing the fund transfer
+    it("Withdrawing", () => {
+        contract.depositFunds({
+            blockchainTxId: "test1",
+            amount: u128.mul(ONE_NEAR, u128.from("2")),
+            depositor: owner,
+            reasoncode: u128.One,
+            text: "A proper deposit"
+        });
+
+        contract.withdrawFunds({
+            blockchainTxId: "test1",
+            amount: ONE_NEAR,
+            reasoncode: u128.One,
+            text: "A proper withdrawal"
+        });
+
+        expect(contract.getBalance()).toBe(ONE_NEAR);
+    });
+    */
 });
