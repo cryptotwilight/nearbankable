@@ -33,6 +33,7 @@ describe("Depositing, Withdrawing", () => {
         expect(() => {
             contract.depositFunds({
                 blockchainTxId: "test1",
+                depositor: owner,
                 amount: u128.from(0),
                 reasoncode: u128.One,
                 text: "A zero deposit, invalid"
@@ -45,6 +46,7 @@ describe("Depositing, Withdrawing", () => {
             contract.depositFunds({
                 blockchainTxId: "test1",
                 amount: u128.from("1000000000000000000000000"),
+                depositor: owner,
                 reasoncode: u128.One,
                 text: "A zero deposit, invalid"
             })
