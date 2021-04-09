@@ -12,8 +12,13 @@ yarn
 yarn asb
 near dev-deploy build/release/nearbankable.wasm
 near call DEV_ACCOUNT init '{"owner":"'OWNER_ACCOUNT'"}' --accountId DEV_ACCOUNT
+```
+
+You can then interact with the contract using, for example:
+```
 near call --accountId "OWNER_ACCOUNT" DEV_ACCOUNT getBalance
 ```
+
 ## Deploying on Windows
 On Windows, replace all the files without the `-windows` affix with the files with the `-windows` affix and run the following:
 ```
@@ -21,7 +26,6 @@ yarn
 yarn start
 near dev-deploy out/main.wasm
 near call DEV_ACCOUNT init '{"owner":"'OWNER_ACCOUNT'"}' --accountId DEV_ACCOUNT
-near call --accountId "OWNER_ACCOUNT" DEV_ACCOUNT getBalance
 ```
 
 # Contract Interface
