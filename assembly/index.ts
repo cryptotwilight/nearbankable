@@ -3,7 +3,6 @@ import {AccountId, Balance, TransactionId, Deposit, Withdrawal, Refund} from './
 
 const MAX_DESCRIPTION_LENGTH: u32 = 280
 
-
 @nearBindgen
 export class NearBankableContract {
     storedTokens: Balance;
