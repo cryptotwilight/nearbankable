@@ -47,6 +47,7 @@ export class NearBankableContract {
         return approvedRefunds;
     }
 
+    @mutateState()
     depositFunds(depositParams: Deposit): u128 {
         assert(depositParams.amount > u128.Zero);
         let bankTxId = this.bankTxIdCounter;
@@ -60,6 +61,7 @@ export class NearBankableContract {
         return bankTxId;
     }
 
+    @mutateState()
     withdrawFunds(withdrawParams: Withdrawal): u128 {
         assert(this.owner == context.sender);
         assert(withdrawParams.amount > u128.Zero);
@@ -78,10 +80,12 @@ export class NearBankableContract {
         return bankTxId
     }
 
+    @mutateState()
     requestRefund(refundParams: Refund): void {
         // TODO: logic
     }
 
+    @mutateState()
     approveRefund(refundParams: Refund): void {
         // TODO: logic
     }

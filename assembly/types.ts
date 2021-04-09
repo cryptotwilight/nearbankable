@@ -8,6 +8,7 @@ export type Duration = u128;
 export type BlockchainTransactionId = string;
 export type TransactionId = u128;
 
+@nearBindgen
 export class Deposit {
     blockchainTxId: BlockchainTransactionId;
     amount: Amount;
@@ -15,6 +16,7 @@ export class Deposit {
     text: string;
 }
 
+@nearBindgen
 export class Withdrawal {
     blockchainTxId: BlockchainTransactionId;
     amount: u128;
@@ -22,6 +24,7 @@ export class Withdrawal {
     text: string;
 }
 
+@nearBindgen
 export class Refund {
     blockchainTxId: BlockchainTransactionId;
     reasoncode: u128;
